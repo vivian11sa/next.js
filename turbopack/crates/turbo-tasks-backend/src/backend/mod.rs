@@ -822,8 +822,9 @@ impl<B: BackingStorage> TurboTasksBackendInner<B> {
                         if task_id.is_transient() {
                             return None;
                         }
-                        let mut meta = Vec::new();
-                        let mut data = Vec::new();
+                        let len = inner.len();
+                        let mut meta = Vec::with_capacity(len);
+                        let mut data = Vec::with_capacity(len);
                         for (key, value) in inner.iter_all() {
                             if key.is_persistent() && value.is_persistent() {
                                 match key.category() {
@@ -835,6 +836,8 @@ impl<B: BackingStorage> TurboTasksBackendInner<B> {
                                 }
                             }
                         }
+                        meta.shrink_to_fit();
+                        data.shrink_to_fit();
                         Some((meta, data))
                     },
                     |task_id, result| (task_id, result),
@@ -842,8 +845,9 @@ impl<B: BackingStorage> TurboTasksBackendInner<B> {
                         if task_id.is_transient() {
                             return (task_id, None);
                         }
-                        let mut meta = Vec::new();
-                        let mut data = Vec::new();
+                        let len = inner.len();
+                        let mut meta = Vec::with_capacity(len);
+                        let mut data = Vec::with_capacity(len);
                         for (key, value) in inner.iter_all() {
                             if key.is_persistent() && value.is_persistent() {
                                 match key.category() {
@@ -855,6 +859,8 @@ impl<B: BackingStorage> TurboTasksBackendInner<B> {
                                 }
                             }
                         }
+                        meta.shrink_to_fit();
+                        data.shrink_to_fit();
                         (task_id, Some((meta, data)))
                     },
                 )

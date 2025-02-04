@@ -30,7 +30,8 @@ use turbo_tasks::{
     mark_root,
     trace::TraceRawVcs,
     Completion, Completions, FxIndexMap, IntoTraitRef, NonLocalValue, OperationValue, OperationVc,
-    ReadRef, ResolvedVc, State, TaskInput, TransientInstance, TryFlatJoinIterExt, Value, Vc,
+    ReadRef, ResolvedVc, State, TaskInput, TransientInstance, TryFlatJoinIterExt, TryJoinIterExt,
+    Value, Vc,
 };
 use turbo_tasks_env::{EnvMap, ProcessEnv};
 use turbo_tasks_fs::{DiskFileSystem, FileSystem, FileSystemPath, VirtualFileSystem};
@@ -852,9 +853,12 @@ impl Project {
             .await?
             .iter()
             .map(|endpoint| endpoint.root_modules())
-            .try_flat_join()
+            // TODO changing this to the .try_flat_join() will result in weird behavior.
+            // Some of the RawVcs magically convert to RawVc::LocalCell which panics.
+            .try_join()
             .await?
             .into_iter()
+            .flatten()
             .copied()
             .collect();
         modules.extend(self.client_main_modules().await?.iter().copied());

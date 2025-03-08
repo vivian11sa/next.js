@@ -289,13 +289,16 @@ function processMessage(
   function handleHotUpdate() {
     if (process.env.TURBOPACK) {
       const built = turbopackHmr!.onBuilt()
-      dispatcher.onBuildOk()
-      reportHmrLatency(
-        sendMessage,
-        [...built.updatedModules],
-        built.startMsSinceEpoch,
-        built.endMsSinceEpoch
-      )
+      if (built?.hasUpdates) {
+        dispatcher.onBuildOk()
+        dispatcher.onBeforeRefresh()
+        reportHmrLatency(
+          sendMessage,
+          [...built.updatedModules],
+          built.startMsSinceEpoch,
+          built.endMsSinceEpoch
+        )
+      }
     } else {
       tryApplyUpdates(
         function onBeforeHotUpdate(hasUpdates: boolean) {
@@ -343,8 +346,8 @@ function processMessage(
       } else {
         webpackStartMsSinceEpoch = Date.now()
         setPendingHotUpdateWebpack()
+        console.log('[Fast Refresh] rebuilding')
       }
-      console.log('[Fast Refresh] rebuilding')
       break
     }
     case HMR_ACTIONS_SENT_TO_BROWSER.BUILT:
@@ -427,7 +430,6 @@ function processMessage(
       break
     }
     case HMR_ACTIONS_SENT_TO_BROWSER.TURBOPACK_MESSAGE: {
-      dispatcher.onBeforeRefresh()
       processTurbopackMessage({
         type: HMR_ACTIONS_SENT_TO_BROWSER.TURBOPACK_MESSAGE,
         data: obj.data,

@@ -123,7 +123,7 @@ function clearOutdatedErrors() {
 }
 
 // Successful compilation.
-function handleSuccess() {
+function handleHotUpdate() {
   clearOutdatedErrors()
 
   if (process.env.TURBOPACK) {
@@ -332,7 +332,11 @@ function processMessage(obj: HMR_ACTION_TYPES) {
           clientId: window.__nextDevClientId,
         })
       )
-      return handleSuccess()
+
+      if (obj.action === HMR_ACTIONS_SENT_TO_BROWSER.BUILT) {
+        handleHotUpdate()
+      }
+      return
     }
     case HMR_ACTIONS_SENT_TO_BROWSER.SERVER_COMPONENT_CHANGES: {
       if (hasCompileErrors || RuntimeErrorHandler.hadRuntimeError) {
